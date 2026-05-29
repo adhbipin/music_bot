@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎵 Music Theme Analyzer</title>
+    <!-- Marked.js for markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --accent-color: #38bdf8;
+            --error-color: #f43f5e;
+            --success-color: #10b981;
+            --input-bg: #334155;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, var(--accent-color), #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+
+        .search-card {
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #cbd5e1;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #475569;
+            background-color: var(--input-bg);
+            color: white;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            background-color: #64748b;
+            cursor: not-allowed;
+        }
+
+        #result-container {
+            display: none;
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        #loading {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: var(--accent-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #error-message {
+            display: none;
+            background-color: rgba(244, 63, 94, 0.1);
+            border: 1px solid var(--error-color);
+            color: #fda4af;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Markdown styling */
+        .analysis-content h2 {
+            color: var(--accent-color);
+            font-size: 1.5rem;
+            margin-top: 1.5rem;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 0.5rem;
+        }
+
+        .analysis-content p {
+            line-height: 1.6;
+            color: #e2e8f0;
+        }
+
+        .analysis-content ul {
+            padding-left: 1.5rem;
+        }
+
+        .analysis-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .analysis-content strong {
+            color: #818cf8;
+        }
+
+        footer {
+            margin-top: 4rem;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>🎵 Music Theme Analyzer</h1>
+            <p class="subtitle">Discover the hidden meanings behind your favorite tracks.</p>
+        </header>
+
+        <main>
+            <div class="search-card">
+                <div id="error-message"></div>
+                <form id="analyze-form">
+                    <div class="form-group">
+                        <label for="title">Song Title</label>
+                        <input type="text" id="title" placeholder="e.g. Bohemian Rhapsody" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="artist">Artist Name</label>
+                        <input type="text" id="artist" placeholder="e.g. Queen" required>
+                    </div>
+                    <button type="submit" id="submit-btn">Analyze Lyrics</button>
+                </form>
+            </div>
+
+            <div id="loading">
+                <div class="spinner"></div>
+                <p>Fetching lyrics and analyzing themes...</p>
+            </div>
+
+            <div id="result-container">
+                <div id="result-header" style="margin-bottom: 1.5rem;">
+                    <h2 id="result-title" style="margin: 0; font-size: 1.8rem;"></h2>
+                    <p id="result-artist" style="margin: 0.25rem 0 0; color: #94a3b8; font-style: italic;"></p>
+                </div>
+                <div id="analysis-output" class="analysis-content"></div>
+            </div>
+        </main>
+
+        <footer>
+            Powered by Genius & NVIDIA NIM
+        </footer>
+    </div>
+
+    <script>
+        const form = document.getElementById('analyze-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const loading = document.getElementById('loading');
+        const resultContainer = document.getElementById('result-container');
+        const analysisOutput = document.getElementById('analysis-output');
+        const errorMessage = document.getElementById('error-message');
+        const resultTitle = document.getElementById('result-title');
+        const resultArtist = document.getElementById('result-artist');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const title = document.getElementById('title').value;
+            const artist = document.getElementById('artist').value;
+
+            // Reset UI
+            errorMessage.style.display = 'none';
+            resultContainer.style.display = 'none';
+            loading.style.display = 'block';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ title, artist }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'An unexpected error occurred.');
+                }
+
+                // Render Results
+                resultTitle.textContent = data.title;
+                resultArtist.textContent = `by ${data.artist}`;
+                analysisOutput.innerHTML = marked.parse(data.analysis);
+                
+                loading.style.display = 'none';
+                resultContainer.style.display = 'block';
+            } catch (err) {
+                loading.style.display = 'none';
+                errorMessage.textContent = `❌ ${err.message}`;
+                errorMessage.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -8,3 +8,7 @@ openai>=1.0.0
 
 # Loads environment variables from .env file into os.environ
 python-dotenv>=1.0.0
+
+# Web server dependencies
+fastapi>=0.100.0
+uvicorn>=0.20.0
