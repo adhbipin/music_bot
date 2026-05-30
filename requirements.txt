@@ -1,14 +1,16 @@
-# Core dependencies for the Music Lyrics & Theme Analyzer Bot
-
-# Official Python client for the Genius API (lyrics fetching)
-lyricsgenius>=3.0.0
-
-# OpenAI-compatible SDK — used to call NVIDIA NIM endpoints
-openai>=1.0.0
-
-# Loads environment variables from .env file into os.environ
+# Core
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
 python-dotenv>=1.0.0
+pydantic>=2.6.0
 
-# Web server dependencies
-fastapi>=0.100.0
-uvicorn>=0.20.0
+# AI / APIs
+openai>=1.14.0
+lyricsgenius>=3.0.1
+
+# Middleware / Production
+slowapi>=0.1.9
+python-multipart>=0.0.9
+
+# Optional (for rich CLI)
+# rich>=13.7.0

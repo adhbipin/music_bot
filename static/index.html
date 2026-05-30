@@ -1,292 +1,867 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎵 Music Theme Analyzer</title>
-    <!-- Marked.js for markdown rendering -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Music Theme Chat</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --bg-color: #0f172a;
-            --card-bg: #1e293b;
+            --chat-bg: #1e293b;
+            --user-bubble: #38bdf8;
+            --bot-bubble: #334155;
             --text-color: #f8fafc;
-            --accent-color: #38bdf8;
-            --error-color: #f43f5e;
-            --success-color: #10b981;
-            --input-bg: #334155;
+            --text-muted: #94a3b8;
+            --input-bg: #1e293b;
+            --accent: #38bdf8;
+            --error: #f43f5e;
+            --success: #10b981;
+            --warning: #f59e0b;
         }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html,
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
-            margin: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .phone {
+            width: 100%;
+            max-width: 520px;
+            height: 100%;
+            max-height: 100vh;
+            background: var(--chat-bg);
             display: flex;
             flex-direction: column;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @media (min-width: 560px) {
+            .phone {
+                height: 92vh;
+                max-height: 900px;
+                margin-top: 4vh;
+                border-radius: 1.5rem;
+                border: 1px solid #334155;
+                box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+            }
+        }
+
+        /* Header */
+        .chat-header {
+            padding: 0.875rem 1.25rem;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #334155;
+            display: flex;
             align-items: center;
-            min-height: 100vh;
-            padding: 2rem;
+            gap: 0.75rem;
+            z-index: 20;
+            flex-shrink: 0;
         }
 
-        .container {
-            max-width: 800px;
-            width: 100%;
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #818cf8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            box-shadow: 0 2px 10px rgba(56, 189, 248, 0.3);
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 3rem;
+        .header-info {
+            flex: 1;
+            min-width: 0;
         }
 
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(to right, var(--accent-color), #818cf8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        p.subtitle {
-            color: #94a3b8;
-            font-size: 1.1rem;
-        }
-
-        .search-card {
-            background-color: var(--card-bg);
-            padding: 2rem;
-            border-radius: 1rem;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-            margin-bottom: 2rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: #cbd5e1;
-        }
-
-        input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            border: 1px solid #475569;
-            background-color: var(--input-bg);
-            color: white;
+        .header-info h2 {
             font-size: 1rem;
-            box-sizing: border-box;
-            transition: border-color 0.2s;
+            font-weight: 600;
+            letter-spacing: -0.01em;
         }
 
-        input:focus {
-            outline: none;
-            border-color: var(--accent-color);
+        .header-info p {
+            font-size: 0.75rem;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
         }
 
-        button {
-            width: 100%;
-            padding: 1rem;
-            background-color: var(--accent-color);
-            color: var(--bg-color);
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.6;
+                transform: scale(0.85);
+            }
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
             border: none;
-            border-radius: 0.5rem;
-            font-size: 1.1rem;
-            font-weight: 700;
+            background: transparent;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            transition: transform 0.1s, opacity 0.2s;
+            transition: all 0.2s;
         }
 
-        button:hover {
+        .icon-btn:hover {
+            background: #334155;
+            color: var(--text-color);
+        }
+
+        /* Messages Area */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            scroll-behavior: smooth;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+
+        .message {
+            max-width: 88%;
+            padding: 0.75rem 1rem;
+            border-radius: 1.1rem;
+            font-size: 0.95rem;
+            line-height: 1.55;
+            animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--accent), #0ea5e9);
+            color: #0f172a;
+            border-bottom-right-radius: 0.2rem;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(56, 189, 248, 0.2);
+        }
+
+        .message.bot {
+            align-self: flex-start;
+            background: var(--bot-bubble);
+            color: var(--text-color);
+            border-bottom-left-radius: 0.2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .message.bot.error {
+            background: rgba(244, 63, 94, 0.12);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            color: #fda4af;
+        }
+
+        .message.bot.streaming {
+            border: 1px dashed var(--accent);
             opacity: 0.9;
         }
 
-        button:active {
-            transform: scale(0.98);
+        /* Markdown styling inside bot bubbles */
+        .message.bot h1,
+        .message.bot h2,
+        .message.bot h3 {
+            font-size: 1.05rem;
+            color: var(--accent);
+            margin: 0.6rem 0 0.4rem;
+            border-bottom: 1px solid #475569;
+            padding-bottom: 0.25rem;
         }
 
-        button:disabled {
-            background-color: #64748b;
-            cursor: not-allowed;
+        .message.bot h1:first-child,
+        .message.bot h2:first-child,
+        .message.bot h3:first-child {
+            margin-top: 0;
         }
 
-        #result-container {
-            display: none;
-            background-color: var(--card-bg);
-            padding: 2rem;
-            border-radius: 1rem;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-            animation: fadeIn 0.5s ease-out;
+        .message.bot p {
+            margin-bottom: 0.4rem;
         }
 
-        #loading {
-            display: none;
-            text-align: center;
-            margin: 2rem 0;
+        .message.bot p:last-child {
+            margin-bottom: 0;
         }
 
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-left-color: var(--accent-color);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-bottom: 1rem;
+        .message.bot ul {
+            padding-left: 1.2rem;
+            margin: 0.4rem 0;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .message.bot li {
+            margin-bottom: 0.25rem;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        #error-message {
-            display: none;
-            background-color: rgba(244, 63, 94, 0.1);
-            border: 1px solid var(--error-color);
-            color: #fda4af;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        /* Markdown styling */
-        .analysis-content h2 {
-            color: var(--accent-color);
-            font-size: 1.5rem;
-            margin-top: 1.5rem;
-            border-bottom: 1px solid #334155;
-            padding-bottom: 0.5rem;
-        }
-
-        .analysis-content p {
-            line-height: 1.6;
-            color: #e2e8f0;
-        }
-
-        .analysis-content ul {
-            padding-left: 1.5rem;
-        }
-
-        .analysis-content li {
-            margin-bottom: 0.5rem;
-        }
-
-        .analysis-content strong {
+        .message.bot strong {
             color: #818cf8;
         }
 
-        footer {
-            margin-top: 4rem;
+        .message.bot em {
+            color: #cbd5e1;
+            font-style: italic;
+        }
+
+        .message.bot blockquote {
+            border-left: 3px solid var(--accent);
+            padding-left: 0.75rem;
+            margin: 0.5rem 0;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .message.bot hr {
+            border: none;
+            border-top: 1px solid #475569;
+            margin: 0.5rem 0;
+        }
+
+        .timestamp {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+            opacity: 0.7;
+        }
+
+        .message.user .timestamp {
+            text-align: right;
+        }
+
+        .message.bot .timestamp {
+            text-align: left;
+        }
+
+        /* Typing Indicator */
+        .typing {
+            display: flex;
+            gap: 0.3rem;
+            padding: 0.9rem 1.1rem;
+            align-self: flex-start;
+            background: var(--bot-bubble);
+            border-radius: 1.1rem;
+            border-bottom-left-radius: 0.2rem;
+            animation: popIn 0.3s ease-out;
+        }
+
+        .typing span {
+            width: 7px;
+            height: 7px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        /* Quick Chips */
+        .quick-chips {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding: 0.5rem 1rem;
+            scrollbar-width: none;
+            background: rgba(15, 23, 42, 0.6);
+            border-top: 1px solid #334155;
+        }
+
+        .quick-chips::-webkit-scrollbar {
+            display: none;
+        }
+
+        .chip {
+            white-space: nowrap;
+            padding: 0.45rem 1rem;
+            background: #334155;
+            border: 1px solid #475569;
+            color: var(--text-color);
+            border-radius: 1.25rem;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+            font-weight: 500;
+        }
+
+        .chip:hover {
+            background: #475569;
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .chip:active {
+            transform: scale(0.95);
+        }
+
+        /* Input Area */
+        .chat-input-area {
+            padding: 0.75rem 1rem 1rem;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid #334155;
+            flex-shrink: 0;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.8rem 1.1rem;
+            border-radius: 1.5rem;
+            border: 1px solid #475569;
+            background: var(--input-bg);
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .chat-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+        }
+
+        .chat-input::placeholder {
             color: #64748b;
+        }
+
+        .chat-input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .send-btn {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--accent), #0ea5e9);
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4);
+        }
+
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .send-btn:disabled {
+            background: #475569;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .send-btn svg {
+            width: 20px;
+            height: 20px;
+            pointer-events: none;
+        }
+
+        /* Scroll-to-bottom button */
+        .scroll-btn {
+            position: absolute;
+            bottom: 80px;
+            right: 1.25rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bot-bubble);
+            border: 1px solid #475569;
+            color: var(--text-color);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 15;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s;
+        }
+
+        .scroll-btn.visible {
+            display: flex;
+        }
+
+        .scroll-btn:hover {
+            background: #475569;
+        }
+
+        /* Connection status bar */
+        .conn-status {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--success);
+            z-index: 25;
+            transition: background 0.3s;
+        }
+
+        .conn-status.error {
+            background: var(--error);
+        }
+
+        .conn-status.warning {
+            background: var(--warning);
+        }
+
+        /* Animations */
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px) scale(0.96);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-muted);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .empty-state .big-emoji {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
             font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Skeleton loading for bot messages */
+        .skeleton {
+            background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
+            background-size: 200% 100%;
+            animation: skeleton 1.5s infinite;
+            border-radius: 0.5rem;
+            height: 0.9rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .skeleton.short {
+            width: 60%;
+        }
+
+        .skeleton.medium {
+            width: 80%;
+        }
+
+        .skeleton.long {
+            width: 95%;
+        }
+
+        @keyframes skeleton {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
         }
     </style>
+    <base target="_blank">
+    <base target="_blank">
 </head>
+
 <body>
 
-    <div class="container">
-        <header>
-            <h1>🎵 Music Theme Analyzer</h1>
-            <p class="subtitle">Discover the hidden meanings behind your favorite tracks.</p>
-        </header>
+    <div class="phone">
+        <div class="conn-status" id="conn-status"></div>
 
-        <main>
-            <div class="search-card">
-                <div id="error-message"></div>
-                <form id="analyze-form">
-                    <div class="form-group">
-                        <label for="title">Song Title</label>
-                        <input type="text" id="title" placeholder="e.g. Bohemian Rhapsody" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="artist">Artist Name</label>
-                        <input type="text" id="artist" placeholder="e.g. Queen" required>
-                    </div>
-                    <button type="submit" id="submit-btn">Analyze Lyrics</button>
-                </form>
+        <div class="chat-header">
+            <div class="avatar">🎵</div>
+            <div class="header-info">
+                <h2>Music Bot</h2>
+                <p><span class="status-dot"></span> online</p>
             </div>
-
-            <div id="loading">
-                <div class="spinner"></div>
-                <p>Fetching lyrics and analyzing themes...</p>
+            <div class="header-actions">
+                <button class="icon-btn" id="clear-btn" title="Clear chat">🗑️</button>
+                <button class="icon-btn" id="help-btn" title="Help">❓</button>
             </div>
+        </div>
 
-            <div id="result-container">
-                <div id="result-header" style="margin-bottom: 1.5rem;">
-                    <h2 id="result-title" style="margin: 0; font-size: 1.8rem;"></h2>
-                    <p id="result-artist" style="margin: 0.25rem 0 0; color: #94a3b8; font-style: italic;"></p>
-                </div>
-                <div id="analysis-output" class="analysis-content"></div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="empty-state" id="empty-state">
+                <div class="big-emoji">🎧</div>
+                <p>Send me any song like<br><b>"Bohemian Rhapsody by Queen"</b><br>and I'll analyze its themes!</p>
             </div>
-        </main>
+        </div>
 
-        <footer>
-            Powered by Genius & NVIDIA NIM
-        </footer>
+        <button class="scroll-btn" id="scroll-btn" title="Scroll to bottom">↓</button>
+
+        <div id="typing-indicator" class="typing" style="display: none;">
+            <span></span><span></span><span></span>
+        </div>
+
+        <div class="quick-chips" id="quick-chips">
+            <button class="chip" data-song="Bohemian Rhapsody by Queen">🎸 Bohemian Rhapsody</button>
+            <button class="chip" data-song="Blinding Lights by The Weeknd">✨ Blinding Lights</button>
+            <button class="chip" data-song="Hotel California by Eagles">🌅 Hotel California</button>
+            <button class="chip" data-song="Fix You by Coldplay">💡 Fix You</button>
+        </div>
+
+        <div class="chat-input-area">
+            <div class="input-row">
+                <input type="text" class="chat-input" id="chat-input"
+                    placeholder="Type a song... e.g. 'Fix You by Coldplay'" autocomplete="off" enterkeyhint="send">
+                <button class="send-btn" id="send-btn" type="button" aria-label="Send message">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+        </div>
     </div>
 
     <script>
-        const form = document.getElementById('analyze-form');
-        const submitBtn = document.getElementById('submit-btn');
-        const loading = document.getElementById('loading');
-        const resultContainer = document.getElementById('result-container');
-        const analysisOutput = document.getElementById('analysis-output');
-        const errorMessage = document.getElementById('error-message');
-        const resultTitle = document.getElementById('result-title');
-        const resultArtist = document.getElementById('result-artist');
+        // ── DOM refs ──
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const quickChips = document.getElementById('quick-chips');
+        const emptyState = document.getElementById('empty-state');
+        const scrollBtn = document.getElementById('scroll-btn');
+        const connStatus = document.getElementById('conn-status');
+        const clearBtn = document.getElementById('clear-btn');
+        const helpBtn = document.getElementById('help-btn');
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // ── State ──
+        let isTyping = false;
+        let userScrolledUp = false;
+        const STORAGE_KEY = 'music_chat_history';
 
-            const title = document.getElementById('title').value;
-            const artist = document.getElementById('artist').value;
+        // ── Event Listeners ──
+        sendBtn.addEventListener('click', handleSend);
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+            }
+        });
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                chatInput.value = chip.dataset.song;
+                handleSend();
+            });
+        });
+        clearBtn.addEventListener('click', clearChat);
+        helpBtn.addEventListener('click', showHelp);
+        scrollBtn.addEventListener('click', () => scrollToBottom(true));
 
-            // Reset UI
-            errorMessage.style.display = 'none';
-            resultContainer.style.display = 'none';
-            loading.style.display = 'block';
-            submitBtn.disabled = true;
+        chatMessages.addEventListener('scroll', () => {
+            const nearBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight < 100;
+            userScrolledUp = !nearBottom;
+            scrollBtn.classList.toggle('visible', userScrolledUp);
+        });
+
+        // ── Load history ──
+        loadHistory();
+
+        // ── Core Functions ──
+        function handleSend() {
+            const text = chatInput.value.trim();
+            if (!text || isTyping) return;
+
+            // Hide empty state
+            if (emptyState) emptyState.style.display = 'none';
+            quickChips.style.display = 'none';
+
+            addUserMessage(text);
+            chatInput.value = '';
+            setTyping(true);
+
+            const parsed = parseSongRequest(text);
+            if (!parsed) {
+                setTimeout(() => {
+                    setTyping(false);
+                    addBotMessage("Hmm, I need the song title and artist. Try saying it like:\n<b>\"Song Title by Artist Name\"</b> 🎧", true);
+                }, 600);
+                return;
+            }
+
+            analyzeSong(parsed.title, parsed.artist);
+        }
+
+        function parseSongRequest(text) {
+            const patterns = [
+                /(.+?)\s+by\s+(.+)/i,
+                /(.+?)\s*[-\u2013\u2014]\s*(.+)/i
+            ];
+            for (const p of patterns) {
+                const match = text.match(p);
+                if (match) return { title: match[1].trim(), artist: match[2].trim() };
+            }
+            return null;
+        }
+
+        async function analyzeSong(title, artist) {
+            showTyping();
+            connStatus.className = 'conn-status warning';
 
             try {
                 const response = await fetch('/api/analyze', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-Request-ID': 'web-' + Date.now(),
                     },
                     body: JSON.stringify({ title, artist }),
                 });
 
                 const data = await response.json();
+                hideTyping();
+                connStatus.className = 'conn-status';
 
                 if (!response.ok) {
-                    throw new Error(data.detail || 'An unexpected error occurred.');
+                    throw new Error(data.error || data.detail || 'Something went wrong.');
                 }
 
-                // Render Results
-                resultTitle.textContent = data.title;
-                resultArtist.textContent = `by ${data.artist}`;
-                analysisOutput.innerHTML = marked.parse(data.analysis);
-                
-                loading.style.display = 'none';
-                resultContainer.style.display = 'block';
+                // Add metadata footer
+                let meta = '';
+                if (data.model_used) {
+                    meta += `<div class="timestamp">${timeNow()} · ${data.model_used}`;
+                    if (data.cached) meta += ' · cached';
+                    meta += '</div>';
+                }
+
+                addBotMessage(data.analysis + meta);
+                saveToHistory();
+
             } catch (err) {
-                loading.style.display = 'none';
-                errorMessage.textContent = `❌ ${err.message}`;
-                errorMessage.style.display = 'block';
+                hideTyping();
+                connStatus.className = 'conn-status error';
+                setTimeout(() => connStatus.className = 'conn-status', 3000);
+                addBotMessage(`❌ ${err.message}`, true);
             } finally {
-                submitBtn.disabled = false;
+                setTyping(false);
             }
-        });
+        }
+
+        // ── UI Builders ──
+        function addUserMessage(text) {
+            const msg = document.createElement('div');
+            msg.className = 'message user';
+            msg.innerHTML = escapeHtml(text) + `<div class="timestamp">${timeNow()}</div>`;
+            chatMessages.appendChild(msg);
+            scrollToBottom();
+            saveToHistory();
+        }
+
+        function addBotMessage(html, isError = false) {
+            const msg = document.createElement('div');
+            msg.className = 'message bot' + (isError ? ' error' : '');
+            msg.innerHTML = marked.parse(html) + `<div class="timestamp">${timeNow()}</div>`;
+            chatMessages.appendChild(msg);
+            scrollToBottom();
+        }
+
+        function showTyping() {
+            typingIndicator.style.display = 'flex';
+            scrollToBottom();
+        }
+
+        function hideTyping() {
+            typingIndicator.style.display = 'none';
+        }
+
+        function setTyping(val) {
+            isTyping = val;
+            sendBtn.disabled = val;
+            chatInput.disabled = val;
+        }
+
+        function scrollToBottom(force = false) {
+            if (!userScrolledUp || force) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+
+        function timeNow() {
+            return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ── Chat History (localStorage) ──
+        function saveToHistory() {
+            const messages = [];
+            chatMessages.querySelectorAll('.message').forEach(msg => {
+                messages.push({
+                    type: msg.classList.contains('user') ? 'user' : 'bot',
+                    html: msg.innerHTML,
+                    isError: msg.classList.contains('error'),
+                });
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+        }
+
+        function loadHistory() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                const messages = JSON.parse(raw);
+                if (messages.length === 0) return;
+
+                emptyState.style.display = 'none';
+                quickChips.style.display = 'none';
+
+                messages.forEach(m => {
+                    const div = document.createElement('div');
+                    div.className = 'message ' + m.type + (m.isError ? ' error' : '');
+                    div.innerHTML = m.html;
+                    chatMessages.appendChild(div);
+                });
+                scrollToBottom(true);
+            } catch (e) {
+                console.error('Failed to load history:', e);
+            }
+        }
+
+        function clearChat() {
+            if (!confirm('Clear all chat history?')) return;
+            localStorage.removeItem(STORAGE_KEY);
+            chatMessages.innerHTML = `
+                <div class="empty-state" id="empty-state">
+                    <div class="big-emoji">🎧</div>
+                    <p>Send me any song like<br><b>"Bohemian Rhapsody by Queen"</b><br>and I'll analyze its themes!</p>
+                </div>
+            `;
+            quickChips.style.display = 'flex';
+        }
+
+        function showHelp() {
+            addBotMessage(`<b>🎵 How to use Music Bot</b><br><br>
+                <b>Send a song:</b> Type <code>Song Title by Artist</code><br>
+                <b>Examples:</b><br>
+                • Bohemian Rhapsody by Queen<br>
+                • Blinding Lights by The Weeknd<br>
+                • Hotel California by Eagles<br><br>
+                <b>Commands:</b><br>
+                • Click 🗑️ to clear history<br>
+                • Chat history is saved locally`);
+            scrollToBottom(true);
+        }
+
+        // ── Welcome on first visit ──
+        if (!localStorage.getItem(STORAGE_KEY)) {
+            setTimeout(() => {
+                addBotMessage("Hey there! 👋 I'm your music analysis bot. Send me any song and I'll break down its themes, mood, and hidden meanings. 🎧");
+            }, 400);
+        }
     </script>
 </body>
+
 </html>
